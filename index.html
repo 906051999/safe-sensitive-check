@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>Sensitive Word Check</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            padding: 20px 0;
+        }
+        textarea, button {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1 data-lang='{"en": "Sensitive Word Check", "zh": "敏感词检查"}'>Sensitive Word Check</h1>
+<button id="langSwitch" data-lang='{"en": "Switch Language", "zh": "切换语言"}'>Switch Language</button>
+<textarea id="inputText" rows="10"></textarea><br>
+<button id="checkButton" data-lang='{"en": "Check", "zh": "检查"}'>Check</button>
+<button id="resetButton" data-lang='{"en": "Reset", "zh": "重置"}'>Reset</button>
+<span id="matchedKeywordsLabel"
+      data-lang='{"en": "Matched Keywords:", "zh": "匹配的关键词:"}'>Matched Keywords:</span><br>
+<textarea id="matchedKeywords" rows="10" readonly></textarea>
+<span id="replacedTextLabel" data-lang='{"en": "Replaced Text:", "zh": "替换后的文本:"}'>Replaced Text:</span><br>
+<textarea id="replacedText" rows="10" readonly></textarea>
+
+<button id="copyButton" data-lang='{"en": "Copy", "zh": "复制"}'>Copy</button>
+
+<script>
+    document.getElementById('copyButton').addEventListener('click', function() {
+        var replacedText = document.getElementById('replacedText').value;
+        navigator.clipboard.writeText(replacedText).then(function() {
+            var replacedText = document.getElementById('replacedText').value;
+            if (replacedText === '') {
+            alert('请输入文本并检查！');
+            return;
+            }
+            // 复制成功后显示一个toast提醒
+            alert('复制成功！');
+        }, function() {
+            // 复制失败后显示一个toast提醒
+            alert('复制失败！');
+        });
+    });
+</script>
+
+<script>
+    function switchLanguage(lang) {
+        var elements = document.querySelectorAll('[data-lang]');
+        elements.forEach(function(element) {
+            var translations = JSON.parse(element.getAttribute('data-lang'));
+            element.textContent = translations[lang];
+        });
+    }
+
+    document.getElementById('langSwitch').addEventListener('click', function() {
+        var currentLang = document.documentElement.lang;
+        if (currentLang === 'en') {
+            document.documentElement.lang = 'zh';
+            switchLanguage('zh');
+        } else {
+            document.documentElement.lang = 'en';
+            switchLanguage('en');
+        }
+    });
+
+        // Set the initial language based on the lang attribute of the html element
+    switchLanguage(document.documentElement.lang);
+
+</script>
+
+<script>
+    $(document).ready(function(){
+
+        $("#checkButton").click(function(){
+            $.ajax({
+                url: "/process_text",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ text: $("#inputText").val() }),
+                success: function(data, status){
+                    $("#matchedKeywords").val(data.matched_keywords.join(', '));
+                    $("#replacedText").val(data.replaced_text);
+                }
+            });
+        });
+
+        $("#resetButton").click(function(){
+            $("#inputText").val('');
+            $("#matchedKeywords").val('');
+            $("#replacedText").val('');
+        });
+    });
+</script>
+</body>
+</html>
