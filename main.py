@@ -5,6 +5,9 @@ import data_process
 
 data_process.generate_json_file()
 
+# Check if input directory exists, if not, create it
+if not os.path.exists('input'):
+    os.makedirs('input')
 # 遍历input文件夹下的所有txt文件
 txt_files = glob.glob('input/*.txt')
 
